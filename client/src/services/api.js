@@ -56,9 +56,13 @@ export const postService = {
     return response.data;
   },
 
-  // Create a new post
+  // Create a new post (supports FormData uploads)
   createPost: async (postData) => {
-    const response = await api.post('/posts', postData);
+    const headers =
+      postData instanceof FormData
+        ? { 'Content-Type': 'multipart/form-data' }
+        : { 'Content-Type': 'application/json' };
+    const response = await api.post('/posts', postData, { headers });
     return response.data;
   },
 
@@ -133,4 +137,4 @@ export const authService = {
   },
 };
 
-export default api; 
+export default api;
