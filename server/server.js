@@ -12,7 +12,6 @@ import compression from 'compression';
 import morgan from 'morgan';
 import winston from 'winston';
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 // Import routes
 import postRoutes from './routes/postRoutes.js';
@@ -34,13 +33,10 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-// Initialize Sentry (error + performance)
 Sentry.init({
   dsn: process.env.SENTRY_DSN || undefined,
   environment: process.env.NODE_ENV,
-  integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 0.2,
-  profilesSampleRate: 0.2,
 });
 
 // Middleware
@@ -52,8 +48,6 @@ app.use(
     credentials: true,
   })
 );
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.tracingHandler());
 app.use(process.env.NODE_ENV === 'production' ? morgan('combined') : morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -85,8 +79,10 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware
-app.use(Sentry.Handlers.errorHandler());
 app.use((err, req, res, next) => {
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err);
+  }
   logger.error('Unhandled error', { message: err.message, stack: err.stack });
   res.status(err.statusCode || 500).json({
     success: false,
@@ -96,7 +92,7 @@ app.use((err, req, res, next) => {
 
 // Connect to MongoDB and start server
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(process.env.MONGODB_URI || process.env.MONGO_URI, {
     maxPoolSize: 20,
     minPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
