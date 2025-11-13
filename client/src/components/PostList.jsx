@@ -14,14 +14,9 @@ export default function PostList() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await call(() => postService.getAllPosts(page, limit));
-        console.log('📦 Full API response:', res);
-
-        const data = res?.data || res;
-        const postsData = data?.posts || data?.data || [];
+        const data = await call(() => postService.getAllPosts(page, limit));
+        const postsData = data?.posts || [];
         const total = data?.totalPages || 1;
-
-        console.log('🧩 Normalized posts:', postsData);
         setPosts(postsData);
         setTotalPages(total);
       } catch (err) {
@@ -47,31 +42,32 @@ export default function PostList() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <h2 style={{ textAlign: 'center', margin: '1rem 0' }}>Posts</h2>
+    <div className="container">
+      <div className="section-title">
+        <h2 style={{ margin: 0 }}>Posts</h2>
+        <div className="toolbar">
+          {/* reserved for filters/sort later */}
+        </div>
+      </div>
 
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: 'red' }}>{error.message || 'Error'}</p>}
       {!loading && posts.length === 0 && <p>No posts found.</p>}
 
-      {posts.map((p) => (
-        <PostCard key={p._id} post={p} onDelete={handleDelete} />
-      ))}
+      <div className="grid grid-3">
+        {posts.map((p) => (
+          <PostCard key={p._id} post={p} onDelete={handleDelete} />
+        ))}
+      </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={page === 1}
-        >
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '1rem' }}>
+        <button className="btn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>
           Prev
         </button>
         <span>
           Page {page} / {totalPages}
         </span>
-        <button
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          disabled={page === totalPages}
-        >
+        <button className="btn" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
           Next
         </button>
       </div>
