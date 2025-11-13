@@ -41,15 +41,15 @@ jobs:
       - name: Build
         run: npm run build
 
-  deploy:
-    name: Deploy to Render (Production)
-    needs: ci
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Render Deploy Hook (Frontend - PROD)
-        run: |
-          if [ -z "${{ secrets.RENDER_HOOK_FE_PROD }}" ]; then
-            echo "RENDER_HOOK_FE_PROD secret is not set" && exit 1;
-          fi
-          curl -fsSL -X POST "${{ secrets.RENDER_HOOK_FE_PROD }}"
+  #deploy:
+   # name: Deploy to Render (Production)
+   # needs: ci
+    #if: github.ref == 'refs/heads/main'
+    #runs-on: ubuntu-latest
+    #steps:
+      #- name: Trigger Render Deploy Hook (Frontend - PROD)
+        #run: |
+          #if [ -z "${{ secrets.RENDER_HOOK_FE_PROD }}" ]; then
+            #echo "RENDER_HOOK_FE_PROD secret is not set" && exit 1;
+          #fi
+          #curl -fsSL -X POST "${{ secrets.RENDER_HOOK_FE_PROD }}"
