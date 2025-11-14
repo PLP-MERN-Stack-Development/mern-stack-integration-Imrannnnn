@@ -171,6 +171,133 @@ README.md documents setup, API, and usage
 
 Screenshots (like blog.png) included in the root
 
+---
+
+## Deployment
+
+This project is deployed to **Render** and **Netlify**:
+
+- **Backend (API)**: Express server deployed as a Render Web Service
+- **Frontend (Client)**: Vite React app deployed as a Netlify site
+
+### Local Development
+
+1. Start MongoDB (local or Atlas).
+2. Configure environment variables:
+   - `server/.env` (based on `server/.env.example`)
+   - `client/.env` (e.g. `VITE_API_URL=http://localhost:5000`)
+3. Run backend:
+
+   ```bash
+   cd server
+   npm run dev
+   ```
+
+4. Run frontend:
+
+   ```bash
+   cd client
+   npm run dev
+   ```
+
+### Production (Render)
+
+**Backend Web Service**
+
+- Root directory: `server/`
+- Build command: `npm ci`
+- Start command: `node server.js` (or `npm start`)
+- Environment variables (Render → Settings → Environment):
+  - `NODE_ENV=production`
+  - `PORT=5000`
+  - `MONGODB_URI` or `MONGO_URI` (Atlas connection string)
+  - `JWT_SECRET` (strong secret)
+  - `CLIENT_URL` (frontend URL)
+  - `LOG_LEVEL=info` (optional)
+  - `SENTRY_DSN` (optional, for backend error tracking)
+
+**Frontend (Netlify)**
+
+- Build command: `npm run build`
+- Publish directory: `dist`
+- Environment variables (Netlify → Site configuration → Environment variables):
+  - `VITE_API_URL` (backend root URL, e.g. `https://mern-stack-integration-imrannnnn.onrender.com`)
+  - `VITE_SENTRY_DSN` (optional, for frontend error tracking)
+
+---
+
+## Deployed URLs
+
+Deployed URLs:
+
+- **Frontend (React app)**: https://mernimran.netlify.app/
+- **Backend (API base)**: https://mern-stack-integration-imrannnnn.onrender.com/api
+
+---
+
+## CI/CD Pipeline
+
+Continuous Integration and Deployment are configured with **GitHub Actions** and **Render Deploy Hooks**.
+
+- **GitHub Actions workflows** (in `.github/workflows/`):
+  - `server-ci.yml`
+    - Runs on pushes/PRs to `main` affecting `server/`
+    - Steps: install dependencies, lint (if present), test (if present), build (if present)
+    - On successful CI for `main`, triggers the Render backend deploy hook
+  - `client-ci.yml`
+    - Runs on pushes/PRs to `main` affecting `client/`
+    - Steps: install dependencies, lint, test (if present), build
+    - On successful CI for `main`, triggers the Render frontend deploy hook
+
+- **Render Deploy Hooks**
+  - Backend: `RENDER_HOOK_API_PROD` (stored as a GitHub secret)
+  - Frontend: `RENDER_HOOK_FE_PROD` (stored as a GitHub secret)
+  - Auto-Deploy is turned **off** in Render so deployments only run when CI passes.
+
+Include CI/CD screenshots in the repo, for example:
+
+- `.github/screenshots/ci-server.png`
+- `.github/screenshots/ci-client.png`
+
+and reference them here if required by the assignment.
+
+---
+
+## Monitoring & Maintenance
+
+### Health Checks
+
+- **Liveness**: `GET /healthz` → returns `200 ok`
+- **Readiness**: `GET /readyz` → returns `200 ready` when MongoDB is connected, otherwise `503 not-ready`
+- Render Health Check can be configured to use `/healthz`.
+
+### Logging & Error Tracking
+
+- **Server logging**:
+  - `morgan` for HTTP access logs
+  - `winston` for structured JSON application logs
+- **Error tracking (optional)**:
+  - Backend: Sentry via `@sentry/node` (uses `SENTRY_DSN`)
+  - Frontend: Sentry via `@sentry/react` (uses `VITE_SENTRY_DSN`)
+
+### Uptime & Performance
+
+- Uptime monitoring (e.g. UptimeRobot):
+  - Monitor backend: `GET https://mern-stack-integration-imrannnnn.onrender.com/healthz`
+  - Monitor frontend: `GET https://mernimran.netlify.app/`
+- Render metrics: built-in CPU/memory/latency graphs for the backend service.
+
+### Maintenance Plan
+
+- Dependencies
+  - Keep Node, NPM, and package dependencies up to date.
+  - Use automated tools (e.g. Dependabot) to track updates.
+- Database
+  - Enable and monitor MongoDB Atlas backups.
+  - Periodically test restores to a staging environment.
+- Operations
+  - See `docs/operations.md` for detailed deployment, rollback, and troubleshooting steps.
+
 Resources
 
 MongoDB Docs
